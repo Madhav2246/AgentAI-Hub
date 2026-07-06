@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply transition-colors duration-200;
+  }
+}
+
+/* Custom scrollbar for clean premium look */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.dark ::-webkit-scrollbar-thumb { background: #27272a; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+/* Custom dotted background to match Figma/Vercel styling */
+.bg-grid-dots {
+  background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+.dark .bg-grid-dots {
+  background-image: radial-gradient(#1e1e24 1.5px, transparent 1.5px);
+}
+
+/* Glassmorphism card utilities */
+.glass-card {
+  @apply bg-white/70 dark:bg-[#0c0c0f]/80 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm rounded-xl;
+}
+
+/* Keyframes for flowing connector dashes in Workflow canvas */
+@keyframes flowDash {
+  to { stroke-dashoffset: -20; }
+}
+.animate-flow-line {
+  stroke-dasharray: 5, 5;
+  animation: flowDash 1s linear infinite;
+}
+
+/* Keyframes for active node pulse glow */
+@keyframes nodePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+.node-pulse-active { animation: nodePulse 2s infinite; }
+
+/* Fade-in-up for log entries as they arrive in Tasks page */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+
+/* Typing indicator bounce dots */
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-4px); opacity: 1; }
+}
+.typing-dot {
+  animation: typingDot 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* KPI number count-up shimmer effect */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.kpi-shimmer {
+  background: linear-gradient(90deg, currentColor 25%, rgba(59,130,246,0.6) 50%, currentColor 75%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 2s linear 1;
+}
+
