@@ -33,7 +33,7 @@ if not exist venv (
 echo Activating virtual environment and installing requirements...
 call venv\Scripts\activate
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r ..\requirements.txt
 cd ..
 echo.
 
