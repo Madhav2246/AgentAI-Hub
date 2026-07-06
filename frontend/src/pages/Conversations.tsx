@@ -141,7 +141,7 @@ Keep the response professional, concise, and helpful. Do not mention system deta
   };
 
   // Helper to generate base simulated reactions from other agents
-  const getBaseReactions = (stepId: string, type: StepLog['type'], agentId: string) => {
+  const getBaseReactions = (_stepId: string, type: StepLog['type'], agentId: string) => {
     const list: { emoji: string; count: number; names: string[] }[] = [];
     if (type === 'routing') {
       list.push({ emoji: '🧠', count: 1, names: ['Orchestrator'] });

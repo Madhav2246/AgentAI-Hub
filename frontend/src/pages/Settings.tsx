@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Settings as SettingsIcon, 
   Key, 
-  ShieldCheck, 
-  Info,
   CheckCircle2
 } from 'lucide-react';
 import { ApiKeys } from '../types/types';
@@ -18,7 +15,7 @@ export default function Settings({ apiKeys, onUpdateKeys }: SettingsProps) {
   const [openai, setOpenai] = useState(apiKeys.openai);
   const [anthropic, setAnthropic] = useState(apiKeys.anthropic);
   const [groq, setGroq] = useState(apiKeys.groq);
-  const [openrouter, setOpenrouter] = useState(apiKeys.openrouter);
+  const [openrouter] = useState(apiKeys.openrouter);
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {

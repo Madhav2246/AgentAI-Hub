@@ -33,7 +33,7 @@ export default function Employees({ agents, onCreateAgent }: EmployeesProps) {
   const [model, setModel] = useState('gemini-1.5-flash');
   const [temperature, setTemperature] = useState(0.4);
   const [instructions, setInstructions] = useState('');
-  const [communicationStyle, setCommunicationStyle] = useState('Consultative, structured and concise.');
+  const [communicationStyle] = useState('Consultative, structured and concise.');
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
 
   const availableToolsList = [

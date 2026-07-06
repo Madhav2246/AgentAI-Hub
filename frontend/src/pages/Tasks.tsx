@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  CheckSquare, 
   Plus, 
   Play, 
   X,
@@ -36,7 +35,7 @@ export default function Tasks({
   agents, 
   runningTaskId, 
   runningTaskProgress, 
-  executionLogs, 
+  executionLogs: _executionLogs, 
   onCreateTask, 
   onRunTask,
   isHitlEnabled,
@@ -152,7 +151,6 @@ export default function Tasks({
             <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-1">Task History</h4>
             {tasks.map((task) => {
               const isSelected = selectedTaskId === task.id;
-              const isRunning = runningTaskId === task.id;
               
               return (
                 <div
