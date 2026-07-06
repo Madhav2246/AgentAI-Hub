@@ -109,3 +109,72 @@ AgentAI-Hub/
 * **Aurora Pulsing Nodes:** Check out the glowing node pulses and matching department avatars in the Workflows page.
 * **Typewriter Simulation:** The Landing Page features a live typing mockup executing steps automatically on a loop.
 * **Instant RAG Search:** Filter documents inside the **Knowledge Base** instantly by typing in the search bar.
+
+---
+
+## 🔍 How It Works: Technical Deep Dive
+
+Here is the exact lifecycle of how a task is planned, verified, and executed across multiple AI agents:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Human Supervisor
+    participant App as App.tsx (UI Context)
+    participant Orch as Gemini Orchestrator (gemini.ts)
+    participant Agent as AI Employee Instance
+    participant Tool as Tool Simulator
+
+    User->>App: Clicks "Run Collaboration" on a Task
+    App->>Orch: executeAgentWorkflow(task, agents)
+    Note over Orch: Phase 1: Planning / Routing
+    Orch->>Orch: Sends task & agent specs to Gemini
+    Orch-->>App: Renders Sequential Routing Path
+    
+    loop For Each Planned Agent Handoff
+        Note over Orch: Phase 2: Execution & Tooling
+        Orch->>Tool: Checks if agent requires tools (e.g. Database, Calculator)
+        Tool-->>Orch: Returns simulated data payload
+        Orch->>Agent: Feeds instructions + tool results + previous context
+        Agent-->>Orch: Returns final analysis proposal
+        
+        opt If HITL Handoff Gate is Enabled
+            Note over Orch: Phase 3: Human Verification Gate
+            Orch->>App: Triggers onRequireApproval callback
+            Note right of App: execution loop pauses (await Promise)
+            App->>User: Displays Handoff Editor Panel
+            User->>App: Overrides/Edits text & clicks "Approve"
+            App-->>Orch: Resolves Promise with approved text
+        end
+    end
+    
+    Orch->>Orch: Phase 4: Final Synthesis & Review
+    Orch-->>App: Returns final compiled task payload
+    App->>User: Renders output & triggers Confetti!
+```
+
+### Detailed Execution Phases
+
+#### Phase 1: Heuristic & Generative Planning
+1. When you trigger a task, the **Orchestrator** compiling logic reads the available agent profiles (names, roles, tools, instructions) and the user's task prompt.
+2. It sends this to the Gemini LLM with a structural request: *"Build a sequential step-by-step execution graph selecting the correct agents and tools in JSON format."*
+3. The orchestrator logs this planning step, updating the Sidebar and Workflow canvases in real-time.
+
+#### Phase 2: Contextual Handoff Loop (Chaining)
+1. The orchestrator loops through the plan sequence. For each agent:
+   * **Tool Execution:** If the plan chose a tool (e.g., Sales using `Database Search`), a simulation query is run to generate a context block (like mock CRM contracts or margin figures).
+   * **Prompt Synthesis:** A comprehensive prompt is built dynamically combining the agent's backstory, their instructions, the tool's results, and the **entire accumulated text output of all previous steps**.
+   * **In-Character Execution:** Gemini runs the prompt with a system instruction to speak strictly as that agent's persona.
+
+#### Phase 3: The Human-in-the-Loop Promise Pause (The Gate)
+1. When transitioning from Agent A to Agent B:
+   * If **HITL Gates** are enabled, `gemini.ts` invokes `onRequireApproval()` and `await`s the Promise.
+   * In React, this state activates `approvalData` which blocks page updates and renders a modal card. The Promise's `resolve` function pointer is saved inside a React Ref (`approvalResolverRef.current = resolve`).
+   * When the user reviews the text, edits any errors, and clicks **Approve**, the click handler triggers `approvalResolverRef.current(editedText)`.
+   * This immediately resolves the awaited Promise, and the loop moves on to Agent B with the newly corrected inputs!
+
+#### Phase 4: Slack-style Conversations Feed Sync
+1. Every action (thoughts, tool runs, messages) is logged as a `StepLog` entity.
+2. The **Conversations** panel renders these logs inside a styled Slack channel.
+3. Other agents run standard heuristics to react to the messages (e.g., if Sales proposes a discount, the Finance agent's icon automatically triggers a `👎` reaction; once Legal resolves it, other agents react with `👍` or `🔥`).
+4. Users can interactively click these reactions to toggle counts, storing clicks inside `userReactions` states.
