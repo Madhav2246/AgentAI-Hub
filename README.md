@@ -5,7 +5,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind--3.4.1-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-4285F4?logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
-[![Hackathon](https://img.shields.io/badge/FlowZint%20Hackathon-Winner-gold)](https://github.com/Madhav2246/AgentAI-Hub)
+
 
 > **AgentHub AI** is an advanced Multi-Agent Collaboration Hub and Operational Dashboard designed as an "Operating System" for AI Employees. Instead of simple chatbot prompts, AgentHub compiles complex business objectives into sequential multi-department workflows where specialized agents execute tools, calculate metrics, and debate approvals—gated by Human-in-the-Loop review.
 
