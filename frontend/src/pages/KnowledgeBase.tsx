@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   Sparkles
 } from 'lucide-react';
-import { KnowledgeSource } from '../types/types';
+import { KnowledgeSource, Agent } from '../types/types';
 
 interface KnowledgeBaseProps {
   knowledge: KnowledgeSource[];

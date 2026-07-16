@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Key, 
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck
 } from 'lucide-react';
 import { ApiKeys } from '../types/types';
 
