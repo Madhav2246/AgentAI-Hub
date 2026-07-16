@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Agent, Task, KnowledgeSource, ApiKeys, AnalyticsData, StepLog } from './types/types';
+import { Agent, Task, KnowledgeSource, ApiKeys, AnalyticsData, StepLog, Workflow } from './types/types';
 import Sidebar from './components/Sidebar';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';

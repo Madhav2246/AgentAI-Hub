@@ -1,4 +1,4 @@
-import { Agent, StepLog } from '../types/types';
+import { Agent, Task, StepLog } from '../types/types';
 
 // Gemini Pricing (estimate based on Gemini 1.5 Flash)
 const COST_PER_INPUT_TOKEN = 0.075 / 1_000_000;
