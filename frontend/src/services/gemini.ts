@@ -4,6 +4,98 @@ import { Agent, Task, StepLog } from '../types/types';
 const COST_PER_INPUT_TOKEN = 0.075 / 1_000_000;
 const COST_PER_OUTPUT_TOKEN = 0.30 / 1_000_000;
 
+// ─────────────────────────────────────────────────────────────
+// REAL TOOL DISPATCHER — calls actual backend endpoints
+// No more LLM pretending to be a tool!
+// ─────────────────────────────────────────────────────────────
+async function callRealTool(toolName: string, query: string, context: string): Promise<string> {
+  const nameLower = toolName.toLowerCase();
+
+  // Financial Calculator → Real Python math
+  if (nameLower.includes('calc') || nameLower.includes('financial') || nameLower.includes('math')) {
+    const res = await fetch('/api/tools/calculator', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, context })
+    });
+    if (!res.ok) throw new Error('Calculator error');
+    const data = await res.json();
+    return `📊 Financial Calculator Results:\n${JSON.stringify(data.results, null, 2)}\nSource: ${data.source}`;
+  }
+
+  // Web Search → Real DuckDuckGo internet search
+  if (nameLower.includes('web') || nameLower.includes('search') || nameLower.includes('internet')) {
+    const res = await fetch('/api/tools/web-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    if (!res.ok) throw new Error('Web search error');
+    const data = await res.json();
+    const formatted = data.results.map((r: any, i: number) =>
+      `[${i + 1}] ${r.title}\n    ${r.snippet}\n    Source: ${r.source}`
+    ).join('\n\n');
+    return `🌐 Web Search Results for "${query}":\n\n${formatted}\n\nSource: ${data.source}`;
+  }
+
+  // CRM / Database → Real SQLite queries
+  if (nameLower.includes('database') || nameLower.includes('crm') || nameLower.includes('db')) {
+    const res = await fetch('/api/tools/db-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, type: 'all' })
+    });
+    if (!res.ok) throw new Error('Database error');
+    const data = await res.json();
+    const companies = data.results.companies || [];
+    const deals = data.results.deals || [];
+    const tickets = data.results.support_tickets || [];
+    let out = `🗄️ CRM Database Query: "${query}"\n`;
+    if (companies.length > 0) {
+      out += `\n📋 Companies Found:\n` + companies.map((c: any) =>
+        `  • ${c.name} | ${c.tier} | ARR: $${c.arr_value?.toLocaleString()} | Discount Cap: ${c.max_discount_pct}% | Status: ${c.status}`
+      ).join('\n');
+    }
+    if (deals.length > 0) {
+      out += `\n\n💼 Active Deals:\n` + deals.map((d: any) =>
+        `  • ${d.company_name}: $${d.deal_value?.toLocaleString()} | ${d.discount_requested}% discount | Margin: ${d.margin_pct}% | Stage: ${d.stage}\n    Notes: ${d.notes}`
+      ).join('\n');
+    }
+    if (tickets.length > 0) {
+      out += `\n\n🎫 Support Tickets:\n` + tickets.map((t: any) =>
+        `  • [${t.priority}] ${t.customer}: ${t.issue} | Status: ${t.status}`
+      ).join('\n');
+    }
+    out += `\n\nSource: ${data.source}`;
+    return out;
+  }
+
+  // Document / Knowledge Search → Real SQLite RAG
+  if (nameLower.includes('document') || nameLower.includes('knowledge') || nameLower.includes('rag')) {
+    const res = await fetch('/api/knowledge/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    if (!res.ok) throw new Error('Knowledge search error');
+    const data = await res.json();
+    if (data.results.length === 0) return `📚 Knowledge Base: No documents matched "${query}".`;
+    const formatted = data.results.map((r: any) =>
+      `📄 ${r.document} (Relevance: ${r.relevance_score})\n"${r.snippet}..."`
+    ).join('\n\n');
+    return `📚 Knowledge Base RAG Search for "${query}":\n\n${formatted}\n\nSearched ${data.total_docs_searched} documents. Source: ${data.source}`;
+  }
+
+  // Email Dispatch (simulated but realistic)
+  if (nameLower.includes('email') || nameLower.includes('dispatch')) {
+    return `📧 Email Dispatch Tool:\nDraft email generated for context: "${query}"\nStatus: QUEUED — pending supervisor approval before send.\nRecipient lookup: CRM match found.\nTemplate: Support escalation template v3.2 applied.`;
+  }
+
+  // Generic fallback
+  throw new Error(`Unknown tool: ${toolName}`);
+}
+
+
 interface CallGeminiParams {
   apiKey?: string; // Optional client-side key
   systemInstruction?: string;
@@ -13,7 +105,7 @@ interface CallGeminiParams {
 
 // Low-level fetch wrapper that attempts to call the backend proxy, falling back to direct API calls if needed.
 async function callGemini({ apiKey, systemInstruction, prompt, jsonMode = false }: CallGeminiParams) {
-  const model = "gemini-1.5-flash"; // Standard, fast, cost-effective model
+  const model = "gemini-3.5-flash"; // Fast, cost-effective model
 
   const contents = [
     {
@@ -278,7 +370,7 @@ Return a JSON array of steps:
     );
     await new Promise(r => setTimeout(r, 1200));
 
-    // 2. Tool Execution (if configured)
+    // 2. Tool Execution (if configured) — REAL backend tool calls
     let toolResultText = "";
     if (currentStep.toolToUse && currentStep.toolToUse !== "None") {
       logStep(
@@ -291,40 +383,27 @@ Return a JSON array of steps:
         undefined,
         { toolName: currentStep.toolToUse }
       );
-      
-      // Call LLM to act as the tool execution simulator
-      const toolPrompt = `
-You are the tool simulator for [${currentStep.toolToUse}].
-Generate a realistic, professional, data-dense result for the query: "${currentStep.toolQuery || task.name}" in the context of: "${task.description}".
-Do not write commentary. Return only the raw data/results of the query.
-`;
-      try {
-        const toolSimResult = await callGemini({
-          apiKey,
-          prompt: toolPrompt
-        });
-        accumulatedTokens += toolSimResult.totalTokens;
-        accumulatedCost += toolSimResult.cost;
-        toolResultText = toolSimResult.text;
 
+      try {
+        toolResultText = await callRealTool(currentStep.toolToUse, currentStep.toolQuery || task.name, task.description);
         logStep(
           agent.id,
           agent.name,
           agent.role,
           "tool_response",
-          `[${currentStep.toolToUse}] output:\n${toolResultText}`,
+          `[${currentStep.toolToUse}] ✅ Live Result:\n${toolResultText}`,
           undefined,
           undefined,
-          { toolName: currentStep.toolToUse, tokens: toolSimResult.totalTokens, cost: toolSimResult.cost }
+          { toolName: currentStep.toolToUse }
         );
       } catch (error) {
-        toolResultText = `Search results for query '${currentStep.toolQuery}' returned cached repository indices. Directory search completed.`;
+        toolResultText = `Tool ${currentStep.toolToUse} returned cached fallback for query: '${currentStep.toolQuery}'.`;
         logStep(
           agent.id,
           agent.name,
           agent.role,
           "tool_response",
-          `[${currentStep.toolToUse}] (Cached Fallback):\n${toolResultText}`,
+          `[${currentStep.toolToUse}] (Fallback):\n${toolResultText}`,
           undefined,
           undefined,
           { toolName: currentStep.toolToUse }
@@ -351,10 +430,10 @@ ${previousAgentOutput}
 
 ${toolResultText ? `Tool Execution [${currentStep.toolToUse}] Output:\n${toolResultText}` : ""}
 
-Provide your analysis. Write a formal, detailed professional response. 
+Provide your analysis. 
 ${isLastStep 
-  ? "This is the final stage. Synthesize all findings and provide the complete resolved work to the user." 
-  : `Upon completion, handoff your outputs to the next employee: ${nextStepInfo.agentName} (${nextStepInfo.role}). Describe what you accomplished and what they need to finalize.`}
+  ? "This is the final stage. Synthesize all findings and provide a concise, direct, and professional resolution summary for the user (keep it under 150 words)." 
+  : `Write a formal, detailed professional response. Upon completion, handoff your outputs to the next employee: ${nextStepInfo.agentName} (${nextStepInfo.role}). Describe what you accomplished and what they need to finalize.`}
 `;
 
     try {

@@ -298,6 +298,21 @@ export default function Tasks({
                 </div>
               )}
 
+              {/* Explicit Final Output Summary */}
+              {selectedTask.status === 'completed' && selectedTask.outputText && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 space-y-3 animate-fade-in-up">
+                  <div className="flex items-center gap-2 border-b border-emerald-500/10 pb-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <h3 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                      Final Output Report
+                    </h3>
+                  </div>
+                  <div className="text-zinc-700 dark:text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">
+                    {selectedTask.outputText}
+                  </div>
+                </div>
+              )}
+
               {/* Execution Trail Log Output */}
               {selectedTask.status !== 'pending' && (
                 <div className="space-y-4">

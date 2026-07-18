@@ -8,7 +8,9 @@ import {
   DatabaseZap, 
   Search, 
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  Eye,
+  Loader2
 } from 'lucide-react';
 import { KnowledgeSource, Agent } from '../types/types';
 
@@ -21,20 +23,56 @@ interface KnowledgeBaseProps {
 export default function KnowledgeBase({ knowledge, agents, onAddKnowledge }: KnowledgeBaseProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [previewDoc, setPreviewDoc] = useState<{ name: string; type: string; content: string } | null>(null);
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+
   // Form states
   const [name, setName] = useState('');
   const [type, setType] = useState<KnowledgeSource['type']>('pdf');
   const [description, setDescription] = useState('');
   const [fileUrl, setFileUrl] = useState('');
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleOpenDoc = async (sourceId: string, sourceName: string) => {
+    setLoadingDocId(sourceId);
+    try {
+      const res = await fetch(`/api/knowledge/doc/${sourceId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewDoc({ name: data.name, type: data.doc_type, content: data.content || 'No content available.' });
+      } else {
+        setPreviewDoc({ name: sourceName, type: 'unknown', content: 'Could not load document content from the database.' });
+      }
+    } catch {
+      setPreviewDoc({ name: sourceName, type: 'unknown', content: 'This document was added from the UI and its content is stored as the description field. To see full content, search for it in a task prompt.' });
+    } finally {
+      setLoadingDocId(null);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name && !fileUrl) return;
 
     const finalName = type === 'url' ? fileUrl : name;
     const finalSize = Math.floor(Math.random() * 500000) + 12000; // Mock bytes size
     
+    // Real API call to store in SQLite for RAG search
+    try {
+      await fetch('/api/knowledge/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: finalName,
+          type,
+          description,
+          content: description || "No content provided.", // For text-based RAG
+          uploadedAt: new Date().toISOString()
+        })
+      });
+    } catch (error) {
+      console.error("Failed to index document in backend database", error);
+    }
+
     onAddKnowledge(finalName, type, description || "Uploaded workspace knowledge source.", finalSize);
     
     setName('');
@@ -142,15 +180,59 @@ export default function KnowledgeBase({ knowledge, agents, onAddKnowledge }: Kno
                   <ShieldCheck className="h-3.5 w-3.5" />
                   <span>INDEXED</span>
                 </div>
-                <span className="text-[9px] text-zinc-450 font-mono">
-                  {new Date(source.uploadedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                </span>
+                <button
+                  onClick={() => handleOpenDoc(source.id, source.name)}
+                  disabled={loadingDocId === source.id}
+                  className="flex items-center gap-1 text-[9px] text-blue-500 hover:text-blue-400 font-bold font-mono cursor-pointer disabled:opacity-50 transition-colors"
+                >
+                  {loadingDocId === source.id
+                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                    : <Eye className="h-3 w-3" />
+                  }
+                  <span>OPEN</span>
+                </button>
               </div>
 
             </div>
           ))
         )}
       </div>
+
+      {/* Document Preview Modal */}
+      {previewDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 px-5 py-3 shrink-0">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-blue-500" />
+                <div>
+                  <h3 className="text-xs font-bold text-zinc-950 dark:text-white">{previewDoc.name}</h3>
+                  <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider">{previewDoc.type} — Indexed Content</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewDoc(null)}
+                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 rounded-md cursor-pointer transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-5 flex-1">
+              <pre className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed font-sans">
+                {previewDoc.content}
+              </pre>
+            </div>
+            <div className="px-5 py-3 border-t border-zinc-100 dark:border-zinc-800 shrink-0 flex justify-end">
+              <button
+                onClick={() => setPreviewDoc(null)}
+                className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Permissions mapping audit table */}
       <div className="p-5 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0c0c0f] rounded-xl shadow-sm space-y-4">

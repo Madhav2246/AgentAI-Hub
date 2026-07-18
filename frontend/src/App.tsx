@@ -92,6 +92,25 @@ const DEFAULT_AGENTS: Agent[] = [
     status: "idle",
     performance: { tasksCompleted: 61, avgLatencyMs: 2600, successRate: 0.97, tokensUsed: 168000, costIncurred: 0.091 },
     avatarColor: "#f59e0b" // amber
+  },
+  {
+    id: "agent-aria",
+    name: "Aria (Support Bot)",
+    role: "AI Customer Care & Support Specialist",
+    department: "Support",
+    goal: "Resolve customer complaints, process refund requests, answer billing questions, and escalate critical issues to the right department automatically.",
+    backstory: "Built on 50,000+ support conversation training data. Specialized in empathetic de-escalation, SLA-aware ticket prioritization, and multi-department escalation routing for B2B SaaS companies.",
+    tools: ["Database Search", "CRM Link", "Email Dispatch"],
+    memory: true,
+    model: "gemini-1.5-flash",
+    temperature: 0.3,
+    instructions: "Always greet with empathy. Check CRM for customer history before responding. For billing issues, verify in database first. Escalate to Finance for refunds > $500. Escalate to Legal for contract disputes. Always confirm resolution with the customer.",
+    permissions: ["read_support_tickets", "read_client_db", "write_support_kb", "send_emails"],
+    knowledgeSources: ["SLA Framework V4", "Customer Support Playbook", "Refund Policy 2026"],
+    communicationStyle: "Warm, empathetic, professional, solution-focused. Always ends with a clear next step.",
+    status: "idle",
+    performance: { tasksCompleted: 184, avgLatencyMs: 1800, successRate: 0.99, tokensUsed: 312000, costIncurred: 0.124 },
+    avatarColor: "#ec4899" // pink
   }
 ];
 
@@ -122,13 +141,55 @@ const DEFAULT_WORKFLOWS: Workflow[] = [
 
 const DEFAULT_TASKS: Task[] = [
   {
+    id: "task-demo-live",
+    name: "🎯 Live Demo: Acme Corp Deal Review",
+    description: "Verify if a 30% discount for Acme Corp on a 3-year $150k/year contract is financially compliant and legally sound. Route through Sales → Finance → Legal agents.",
+    status: "completed",
+    department: "Sales",
+    assignedAgentId: "agent-sales",
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    completedAt: new Date(Date.now() - 3600000 * 1).toISOString(),
+    totalTokens: 18740,
+    totalCost: 0.0052,
+    durationMs: 21400,
+    confidence: 0.97,
+    inputText: "Verify Acme Corp 30% discount on 3-year contract...",
+    outputText: "FINAL REPORT — Acme Corp Deal Approved with Conditions:\n\n✅ Sales: Acme Corp qualifies as Tier 2 Enterprise. 30% discount is within their approved ceiling.\n✅ Finance: Gross margin at 70% — exactly at the 68% policy floor. APPROVED with waiver note.\n✅ Legal: SLA Premium tier applied. Liability capped at 1x contract value ($150k). GDPR clause added.\n\nRecommendation: Proceed with signature. Attach margin waiver form signed by Finance Director.",
+    steps: [
+      { id: "s1", timestamp: new Date(Date.now() - 3600000 * 2).toISOString(), agentId: "orchestrator", agentName: "AgentHub Coordinator", role: "Workflow Router & Orchestrator", type: "routing", content: "Workflow initiated for: \"Acme Corp Deal Review\". Planning collaboration sequence: Sales Director → Finance Analyst → Legal Counsel. Activating HITL gates between each handoff." },
+      { id: "s2", timestamp: new Date(Date.now() - 3600000 * 2 + 2000).toISOString(), agentId: "agent-sales", agentName: "Sarah Jenkins", role: "Senior Enterprise Sales Director", type: "thought", content: "Analyzing deal parameters for Acme Corp. Need to validate their contract tier, check approved discount ceiling, and verify ARR fits Enterprise bracket." },
+      { id: "s3", timestamp: new Date(Date.now() - 3600000 * 2 + 4000).toISOString(), agentId: "agent-sales", agentName: "Sarah Jenkins", role: "Senior Enterprise Sales Director", type: "tool_call", content: "Invoking tool [Database Search] with parameter: \"Acme Corp contract tier and discount ceiling\"", metadata: { toolName: "Database Search" } },
+      { id: "s4", timestamp: new Date(Date.now() - 3600000 * 2 + 6000).toISOString(), agentId: "agent-sales", agentName: "Sarah Jenkins", role: "Senior Enterprise Sales Director", type: "tool_response", content: "🗄️ CRM Database Query: \"Acme Corp\"\n\n📋 Companies Found:\n  • Acme Corp | Enterprise | ARR: $150,000 | Discount Cap: 30.0% | Status: active\n\n💼 Active Deals:\n  • Acme Corp: $150,000 | 30% discount | Margin: 70.0% | Stage: Proposal\n    Notes: Requesting 30% discount on 3-year plan. Gross margin at 70% — right at the compliance threshold.\n\nSource: AgentHub SQLite CRM v2.0 — Live Database Query", metadata: { toolName: "Database Search" } },
+      { id: "s5", timestamp: new Date(Date.now() - 3600000 * 2 + 8000).toISOString(), agentId: "agent-sales", agentName: "Sarah Jenkins", role: "Senior Enterprise Sales Director", type: "message", content: "CRM confirms Acme Corp is a Tier 2 Enterprise account with $150k ARR. Their approved discount ceiling is exactly 30%. The requested discount matches the ceiling — this is permissible but leaves zero buffer. I'm forwarding to Finance for margin compliance verification before we commit. My recommendation: approve the discount but require a margin waiver signature.", targetAgentId: "agent-finance", targetAgentName: "David Vance", metadata: { tokens: 4200, cost: 0.0012, latencyMs: 3800 } },
+      { id: "s6", timestamp: new Date(Date.now() - 3600000 * 2 + 10000).toISOString(), agentId: "orchestrator", agentName: "AgentHub Coordinator", role: "Workflow Router & Orchestrator", type: "thought", content: "[Human-in-the-Loop] ⏸ PAUSED — Awaiting supervisor approval to route context from Sarah Jenkins → David Vance. Supervisor reviewed and approved handoff payload." },
+      { id: "s7", timestamp: new Date(Date.now() - 3600000 * 2 + 12000).toISOString(), agentId: "agent-finance", agentName: "David Vance", role: "Principal Financial Analyst", type: "thought", content: "Received Sales handoff. Need to calculate actual gross margin impact of the 30% discount and verify against our 68% policy floor." },
+      { id: "s8", timestamp: new Date(Date.now() - 3600000 * 2 + 13000).toISOString(), agentId: "agent-finance", agentName: "David Vance", role: "Principal Financial Analyst", type: "tool_call", content: "Invoking tool [Financial Calculator] with parameter: \"gross margin 30% discount on 150000\"", metadata: { toolName: "Financial Calculator" } },
+      { id: "s9", timestamp: new Date(Date.now() - 3600000 * 2 + 14000).toISOString(), agentId: "agent-finance", agentName: "David Vance", role: "Principal Financial Analyst", type: "tool_response", content: "📊 Financial Calculator Results:\n{\n  \"gross_margin_pct\": 70,\n  \"revenue\": 150000,\n  \"cost_of_goods\": 45000,\n  \"gross_profit\": 105000,\n  \"status\": \"COMPLIANT ✅\",\n  \"policy_floor_pct\": 68,\n  \"discount_pct\": 30,\n  \"discounted_price\": 105000,\n  \"discount_amount\": 45000,\n  \"estimated_margin_after_discount\": 70\n}\nSource: AgentHub Real-Time Calculator Engine v2.0", metadata: { toolName: "Financial Calculator" } },
+      { id: "s10", timestamp: new Date(Date.now() - 3600000 * 2 + 16000).toISOString(), agentId: "agent-finance", agentName: "David Vance", role: "Principal Financial Analyst", type: "message", content: "Calculator confirms: 30% discount yields 70% gross margin — exactly 2 points above our 68% policy floor. This is technically COMPLIANT but sits at a critical threshold. I'm approving, but I'm flagging this for a CFO waiver signature to protect us against any cost overruns that could push margin below floor. Forwarding to Legal for contract liability and SLA clause review.", targetAgentId: "agent-legal", targetAgentName: "Elena Rostova", metadata: { tokens: 5800, cost: 0.0016, latencyMs: 4100 } },
+      { id: "s11", timestamp: new Date(Date.now() - 3600000 * 2 + 18000).toISOString(), agentId: "orchestrator", agentName: "AgentHub Coordinator", role: "Workflow Router & Orchestrator", type: "thought", content: "[Human-in-the-Loop] ⏸ PAUSED — Awaiting supervisor approval to route Finance output → Legal Counsel. Supervisor approved with edits." },
+      { id: "s12", timestamp: new Date(Date.now() - 3600000 * 2 + 19000).toISOString(), agentId: "agent-legal", agentName: "Elena Rostova", role: "Senior Corporate Legal Counsel", type: "tool_call", content: "Invoking tool [Document Search] with parameter: \"SLA Premium tier liability terms\"", metadata: { toolName: "Document Search" } },
+      { id: "s13", timestamp: new Date(Date.now() - 3600000 * 2 + 20000).toISOString(), agentId: "agent-legal", agentName: "Elena Rostova", role: "Senior Corporate Legal Counsel", type: "tool_response", content: "📚 Knowledge Base RAG Search for \"SLA Premium tier liability terms\":\n\n📄 SLA Framework V4.docx (Relevance: 0.92)\n\"Premium SLA: 99.95% uptime, 4-hour response time, liability = 1x contract value. All SLA breaches are compensated with service credits at 10% of monthly fee per hour of downtime.\"\n\nSearched 3 documents. Source: AgentHub SQLite Knowledge Base — Real-Time Keyword RAG", metadata: { toolName: "Document Search" } },
+      { id: "s14", timestamp: new Date(Date.now() - 3600000 * 2 + 21000).toISOString(), agentId: "agent-legal", agentName: "Elena Rostova", role: "Senior Corporate Legal Counsel", type: "conclusion", content: "LEGAL REVIEW COMPLETE — Acme Corp Deal Approved with Conditions:\n\n✅ Contract Terms: 3-year term is standard. Early termination clause to be added (60-day notice required).\n✅ SLA: Premium tier applied — 99.95% uptime, 4-hour response SLO. Liability capped at 1x contract value ($150,000).\n✅ Compliance: GDPR Article 28 processor clause added. Data residency confirmed EU-West.\n⚠️ Condition: CFO margin waiver form required before signature (Finance flagged).\n\nFinal recommendation: APPROVED. Prepare contract draft with attached waiver. Estimated signing timeline: 5-7 business days.", metadata: { tokens: 8740, cost: 0.0024, latencyMs: 5200 } }
+    ]
+  },
+  {
+    id: "task-demo-support",
+    name: "🎫 Customer Support: Billing Dispute",
+    description: "TechStart Inc reports they were charged twice for their July subscription ($450). Aria (Support Bot) must verify the charge, process a refund, and escalate to Finance if needed.",
+    status: "pending",
+    department: "Support",
+    assignedAgentId: "agent-aria",
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    steps: []
+  },
+  {
     id: "task-demo-1",
     name: "Prepare Acme Corp Proposal",
     description: "Structure a commercial proposal for Acme Corp asking for a 30% discount on a 3-year, $100k/year contract, including SLA details.",
     status: "completed",
     department: "Sales",
     assignedAgentId: "agent-sales",
-    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(), // 2 days ago
+    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
     completedAt: new Date(Date.now() - 3600000 * 24 * 2 + 15000).toISOString(),
     totalTokens: 14500,
     totalCost: 0.0035,
@@ -145,7 +206,7 @@ const DEFAULT_TASKS: Task[] = [
     status: "completed",
     department: "Finance",
     assignedAgentId: "agent-finance",
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
     completedAt: new Date(Date.now() - 3600000 * 24 + 8000).toISOString(),
     totalTokens: 8900,
     totalCost: 0.0018,

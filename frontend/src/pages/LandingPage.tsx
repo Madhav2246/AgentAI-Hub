@@ -96,10 +96,18 @@ export default function LandingPage({ onEnterDashboard, theme, onToggleTheme }: 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[11px] font-semibold tracking-wide uppercase"
+            className="flex flex-wrap items-center justify-center gap-2"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-            <span>Introducing AgentHub OS</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[11px] font-semibold tracking-wide uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+              <span>Open Innovation — FlowZint AI Hackathon 2026</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold">
+              <span>✅ Real AI Tools</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-600 dark:text-purple-400 text-[11px] font-semibold">
+              <span>🛑 Human-in-the-Loop</span>
+            </div>
           </motion.div>
 
           <motion.h1 
@@ -108,8 +116,8 @@ export default function LandingPage({ onEnterDashboard, theme, onToggleTheme }: 
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-6xl font-bold tracking-tight text-zinc-950 dark:text-white leading-[1.1]"
           >
-            The Operating System for <br />
-            <span className="text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-500 bg-clip-text text-transparent">AI Employees</span>
+            AI Agents for Sales,{' '}<br />
+            <span className="text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-500 bg-clip-text text-transparent">Support & Customer Care</span>
           </motion.h1>
 
           <motion.p 
@@ -118,7 +126,7 @@ export default function LandingPage({ onEnterDashboard, theme, onToggleTheme }: 
             transition={{ duration: 0.5, delay: 0.2 }}
             className="max-w-2xl mx-auto text-sm md:text-base text-zinc-500 dark:text-zinc-400 leading-relaxed font-normal"
           >
-            Create, manage, and monitor custom AI employees. Run complex workflows with multiple agents collaborating in real-time, executing tools, auditing financials, and resolving legal reviews automatically.
+            Businesses lose <strong className="text-zinc-700 dark:text-zinc-200">6+ hours daily</strong> routing sales approvals, resolving support tickets, and managing customer escalations manually. AgentHub deploys specialized AI agents that collaborate across departments — with <strong className="text-zinc-700 dark:text-zinc-200">you staying in control</strong> via human approval gates.
           </motion.p>
 
           <motion.div 
@@ -356,7 +364,12 @@ export default function LandingPage({ onEnterDashboard, theme, onToggleTheme }: 
       {/* Footer */}
       <footer className="py-12 border-t border-zinc-200/50 dark:border-zinc-800/40 text-center text-xs text-zinc-400 dark:text-zinc-500">
         <div className="max-w-7xl mx-auto px-6 space-y-4">
-          <p>© 2026 AgentHub AI, Inc. All rights reserved. Built for the FlowZint AI Hackathon.</p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="px-3 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest">FlowZint AI Hackathon 2026</span>
+            <span className="px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest">Open Innovation</span>
+          </div>
+          <p>© 2026 AgentHub AI. Submitted to FlowZint AI Hackathon 2026 under Open Innovation category.</p>
+          <p className="text-[10px]">Powered by Gemini 1.5 Flash · Real SQLite CRM · DuckDuckGo Web Search · Python Financial Calculator · Knowledge Base RAG</p>
           <div className="flex justify-center gap-6 text-[10px]">
             <a href="#" className="hover:underline">Privacy Policy</a>
             <a href="#" className="hover:underline">Terms of Service</a>
